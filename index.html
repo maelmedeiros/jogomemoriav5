@@ -3,321 +3,240 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jogo da Memória Colormaq</title>
-
+  <title>Jogo da Memória</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      background: #f2f2f2;
       margin: 0;
       padding: 20px;
+      background: #f4f4f4;
     }
 
     h1 {
-      color: #222;
-    }
-
-    #stats {
-      font-size: 24px;
-      margin: 20px 0;
-      font-weight: bold;
-    }
-
-    #message {
-      font-size: 24px;
-      margin: 15px 0;
-      font-weight: bold;
-      color: #333;
+      margin-bottom: 10px;
     }
 
     #game-board {
       display: grid;
-      grid-template-columns: repeat(4, 110px);
-      gap: 10px;
+      grid-template-columns: repeat(4, 100px);
+      grid-gap: 10px;
       justify-content: center;
-      margin-top: 20px;
+      margin: 20px auto;
     }
 
     .card {
-      width: 110px;
-      height: 110px;
-      position: relative;
-      transform-style: preserve-3d;
-      transition: transform 0.5s;
+      width: 100px;
+      height: 100px;
+      background: #3498db;
+      border-radius: 8px;
       cursor: pointer;
-    }
-
-    .card.flipped {
-      transform: rotateY(180deg);
-    }
-
-    .front,
-    .back {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 10px;
-      backface-visibility: hidden;
-    }
-
-    .front {
-      background: #444;
-    }
-
-    .back {
-      transform: rotateY(180deg);
-      background: white;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
 
-    .back img {
-      width: 90%;
-      height: 90%;
-      object-fit: contain;
-      border-radius: 8px;
+    .card img {
+      width: 100%;
+      height: 100%;
+      display: none;
     }
 
-    button {
+    .card.flipped img {
+      display: block;
+    }
+
+    #mensagem {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #barra-progresso {
+      width: 80%;
+      height: 20px;
+      margin: 10px auto;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #progresso {
+      height: 100%;
+      width: 100%;
+      background: #2ecc71;
+      transition: width 1s linear;
+    }
+
+    #reiniciar {
       margin-top: 20px;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      background: #4CAF50;
-      color: white;
+      padding: 10px 20px;
       font-size: 16px;
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
     }
 
-    button:hover {
-      background: #43a047;
-    }
-
-    @media (max-width: 600px) {
-      #game-board {
-        grid-template-columns: repeat(4, 75px);
-      }
-
-      .card {
-        width: 75px;
-        height: 75px;
-      }
+    #reiniciar:hover {
+      background: #c0392b;
     }
   </style>
 </head>
-
 <body>
 
-  <h1>🧠 Jogo da Memória Colormaq</h1>
+  <h1>Jogo da Memória</h1>
 
-  <div id="stats">
-    ⏳ Tempo restante:
-    <span id="timer">30</span>s
+  <div id="barra-progresso">
+    <div id="progresso"></div>
   </div>
 
-  <div id="message"></div>
+  <p id="mensagem">Tempo restante: 30s</p>
 
   <div id="game-board"></div>
 
-  <button id="restart">
-    Reiniciar
-  </button>
+  <button id="reiniciar">🔄 Reiniciar</button>
 
   <script>
-
-    // =========================
-    // IMAGENS
-    // =========================
-
-    const images = [
-      "https://drive.google.com/file/d/1T7ScS9Fx593YTLVMDqbtWmBhmet-ZdCk/view?usp=sharing",
-      "https://drive.google.com/open?id=1td4jgcc2c9nmjXiSvjPf3knwCIWYjNyE&usp=drive_fs",
-      "https://drive.google.com/open?id=1LkUEIcW0LJ-ZbqyOX_O6yJxqpcc8hLLN&usp=drive_fs",
-      "https://drive.google.com/open?id=1Ylq2n7Eql7MOF49DrR2wt_E1ElYH9M73&usp=drive_fs",
-      "https://drive.google.com/open?id=1KwuWE5DaHfoCkq-YYCxOMjuTb4RhgCeu&usp=drive_fs",
-      "https://drive.google.com/open?id=1JshO5XkSPJLEW3asb4soTk35cUXprNVY&usp=drive_fs",
-      "https://drive.google.com/open?id=14NBvPuUx900z5f5BLbiInvqhxP9maaP2&usp=drive_fs",
-      "https://drive.google.com/open?id=1QHg2FLaJ4TCZOF-OI6llzINAQlubv_R1&usp=drive_fs"
+    const imagens = [
+      "https://raw.githubusercontent.com/maelmedeiros/jogomemoriav4/main/cenbr.png",
+      "https://raw.githubusercontent.com/maelmedeiros/jogomemoriav4/main/cenpr.png",
+      "https://raw.githubusercontent.com/maelmedeiros/jogomemoriav4/main/lca%2014.png",
+      "https://raw.githubusercontent.com/maelmedeiros/jogomemoriav4/main/lcs10kgtopo.png",
+      "https://raw.githubusercontent.com/maelmedeiros/jogomemoriav4/main/lcs20kg.png",
+      "https://raw.githubusercontent.com/maelmedeiros/jogomemoriav4/main/pur%20elec.png",
+      "https://raw.githubusercontent.com/maelmedeiros/jogomemoriav4/main/pur%20pro.png",
+      "https://raw.githubusercontent.com/maelmedeiros/jogomemoriav4/main/purpremium.png"
     ];
 
-    // =========================
-    // VARIÁVEIS
-    // =========================
+    let cartaVirada = null;
+    let bloqueio = false;
+    let paresEncontrados = 0;
 
-    let countdown = 30;
-    let timer;
+    let tempoInicial = 30;
+    let tempoRestante = tempoInicial;
+    let cronometro;
 
-    let flippedCards = [];
-    let matches = 0;
-    let lockBoard = false;
+    const tabuleiro = document.getElementById("game-board");
+    const mensagem = document.getElementById("mensagem");
+    const progresso = document.getElementById("progresso");
+    const reiniciarBtn = document.getElementById("reiniciar");
 
-    const board = document.getElementById("game-board");
-    const timerDisplay = document.getElementById("timer");
-    const messageDisplay = document.getElementById("message");
+    function iniciarJogo() {
 
-    // =========================
-    // EMBARALHAR
-    // =========================
+      clearInterval(cronometro);
 
-    function shuffle(array) {
-      return array.sort(() => Math.random() - 0.5);
-    }
+      tabuleiro.innerHTML = "";
+      cartaVirada = null;
+      bloqueio = false;
+      paresEncontrados = 0;
 
-    // =========================
-    // INICIAR JOGO
-    // =========================
+      tempoRestante = tempoInicial;
 
-    function createBoard() {
+      atualizarTempo();
 
-      clearInterval(timer);
+      let cartas = [...imagens, ...imagens];
+      cartas.sort(() => 0.5 - Math.random());
 
-      countdown = 30;
-      timerDisplay.textContent = countdown;
-
-      board.innerHTML = "";
-
-      flippedCards = [];
-      matches = 0;
-      lockBoard = false;
-
-      messageDisplay.textContent = "";
-
-      startTimer();
-
-      const gameImages = shuffle([...images, ...images]);
-
-      gameImages.forEach(src => {
-
+      cartas.forEach(src => {
         const card = document.createElement("div");
-
         card.classList.add("card");
 
-        card.dataset.image = src;
+        const img = document.createElement("img");
+        img.src = src;
 
-        card.innerHTML = `
-          <div class="front"></div>
+        card.appendChild(img);
 
-          <div class="back">
-            <img src="${src}">
-          </div>
-        `;
+        card.addEventListener("click", () => virarCarta(card, src));
 
-        card.addEventListener("click", flipCard);
-
-        board.appendChild(card);
-
+        tabuleiro.appendChild(card);
       });
 
+      iniciarCronometro();
     }
 
-    // =========================
-    // TIMER
-    // =========================
+    function iniciarCronometro() {
 
-    function startTimer() {
+      cronometro = setInterval(() => {
 
-      timer = setInterval(() => {
+        tempoRestante--;
 
-        countdown--;
+        atualizarTempo();
 
-        timerDisplay.textContent = countdown;
+        if (tempoRestante <= 0) {
 
-        if (countdown <= 0) {
+          clearInterval(cronometro);
 
-          clearInterval(timer);
+          mensagem.textContent = "⏰ Tempo esgotado!";
 
-          lockBoard = true;
-
-          messageDisplay.textContent =
-            "⏰ Tempo esgotado!";
-
+          bloqueio = true;
         }
 
       }, 1000);
-
     }
 
-    // =========================
-    // VIRAR CARTA
-    // =========================
+    function atualizarTempo() {
 
-    function flipCard() {
+      mensagem.textContent = `Tempo restante: ${tempoRestante}s`;
 
-      if (lockBoard) return;
+      let porcentagem = (tempoRestante / tempoInicial) * 100;
 
-      if (this.classList.contains("flipped")) return;
-
-      this.classList.add("flipped");
-
-      flippedCards.push(this);
-
-      if (flippedCards.length === 2) {
-
-        checkMatch();
-
-      }
-
+      progresso.style.width = `${porcentagem}%`;
     }
 
-    // =========================
-    // VERIFICAR PAR
-    // =========================
+    function virarCarta(card, src) {
 
-    function checkMatch() {
+      if (
+        bloqueio ||
+        card.classList.contains("flipped") ||
+        tempoRestante <= 0
+      ) return;
 
-      const [card1, card2] = flippedCards;
+      card.classList.add("flipped");
 
-      if (card1.dataset.image === card2.dataset.image) {
+      if (!cartaVirada) {
 
-        matches++;
-
-        flippedCards = [];
-
-        if (matches === images.length) {
-
-          clearInterval(timer);
-
-          messageDisplay.textContent =
-            "🎉 Parabéns! Você venceu!";
-
-        }
+        cartaVirada = { card, src };
 
       } else {
 
-        lockBoard = true;
+        if (cartaVirada.src === src) {
 
-        setTimeout(() => {
+          paresEncontrados++;
 
-          card1.classList.remove("flipped");
+          cartaVirada = null;
 
-          card2.classList.remove("flipped");
+          if (paresEncontrados === imagens.length) {
 
-          flippedCards = [];
+            clearInterval(cronometro);
 
-          lockBoard = false;
+            mensagem.textContent = "🎉 Parabéns! Você venceu!";
 
-        }, 800);
+            bloqueio = true;
+          }
 
+        } else {
+
+          bloqueio = true;
+
+          setTimeout(() => {
+
+            card.classList.remove("flipped");
+            cartaVirada.card.classList.remove("flipped");
+
+            cartaVirada = null;
+            bloqueio = false;
+
+          }, 1000);
+        }
       }
-
     }
 
-    // =========================
-    // REINICIAR
-    // =========================
+    reiniciarBtn.addEventListener("click", iniciarJogo);
 
-    document
-      .getElementById("restart")
-      .addEventListener("click", createBoard);
-
-    // =========================
-    // START
-    // =========================
-
-    createBoard();
-
+    iniciarJogo();
   </script>
 
 </body>
