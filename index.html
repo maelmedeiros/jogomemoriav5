@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Memória Colormaq</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #222;
+    }
+
+    #stats {
+      font-size: 24px;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+
+    #message {
+      font-size: 24px;
+      margin: 15px 0;
+      font-weight: bold;
+      color: #333;
+    }
+
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(4, 110px);
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .card {
+      width: 110px;
+      height: 110px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.5s;
+      cursor: pointer;
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .front,
+    .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      backface-visibility: hidden;
+    }
+
+    .front {
+      background: #444;
+    }
+
+    .back {
+      transform: rotateY(180deg);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .back img {
+      width: 90%;
+      height: 90%;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #43a047;
+    }
+
+    @media (max-width: 600px) {
+      #game-board {
+        grid-template-columns: repeat(4, 75px);
+      }
+
+      .card {
+        width: 75px;
+        height: 75px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🧠 Jogo da Memória Colormaq</h1>
+
+  <div id="stats">
+    ⏳ Tempo restante:
+    <span id="timer">30</span>s
+  </div>
+
+  <div id="message"></div>
+
+  <div id="game-board"></div>
+
+  <button id="restart">
+    Reiniciar
+  </button>
+
+  <script>
+
+    // =========================
+    // IMAGENS
+    // =========================
+
+    const images = [
+      "https://drive.google.com/uc?export=view&id=1T7ScS9Fx593YTLVMDqbtWmBhmet-ZdCk",
+      "https://drive.google.com/uc?export=view&id=1td4jgcc2c9nmjXiSvjPf3knwCIWYjNyE",
+      "https://drive.google.com/uc?export=view&id=1LkUEIcW0LJ-ZbqyOX_O6yJxqpcc8hLLN",
+      "https://drive.google.com/uc?export=view&id=1Ylq2n7Eql7MOF49DrR2wt_E1ElYH9M73",
+      "https://drive.google.com/uc?export=view&id=1KwuWE5DaHfoCkq-YYCxOMjuTb4RhgCeu",
+      "https://drive.google.com/uc?export=view&id=1JshO5XkSPJLEW3asb4soTk35cUXprNVY",
+      "https://drive.google.com/uc?export=view&id=1QHg2FLaJ4TCZOF-OI6llzINAQlubv_R1",
+      "https://drive.google.com/uc?export=view&id=14NBvPuUx900z5f5BLbiInvqhxP9maaP2"
+    ];
+
+    // =========================
+    // VARIÁVEIS
+    // =========================
+
+    let countdown = 30;
+    let timer;
+
+    let flippedCards = [];
+    let matches = 0;
+    let lockBoard = false;
+
+    const board = document.getElementById("game-board");
+    const timerDisplay = document.getElementById("timer");
+    const messageDisplay = document.getElementById("message");
+
+    // =========================
+    // EMBARALHAR
+    // =========================
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    // =========================
+    // INICIAR JOGO
+    // =========================
+
+    function createBoard() {
+
+      clearInterval(timer);
+
+      countdown = 30;
+      timerDisplay.textContent = countdown;
+
+      board.innerHTML = "";
+
+      flippedCards = [];
+      matches = 0;
+      lockBoard = false;
+
+      messageDisplay.textContent = "";
+
+      startTimer();
+
+      const gameImages = shuffle([...images, ...images]);
+
+      gameImages.forEach(src => {
+
+        const card = document.createElement("div");
+
+        card.classList.add("card");
+
+        card.dataset.image = src;
+
+        card.innerHTML = `
+          <div class="front"></div>
+
+          <div class="back">
+            <img src="${src}">
+          </div>
+        `;
+
+        card.addEventListener("click", flipCard);
+
+        board.appendChild(card);
+
+      });
+
+    }
+
+    // =========================
+    // TIMER
+    // =========================
+
+    function startTimer() {
+
+      timer = setInterval(() => {
+
+        countdown--;
+
+        timerDisplay.textContent = countdown;
+
+        if (countdown <= 0) {
+
+          clearInterval(timer);
+
+          lockBoard = true;
+
+          messageDisplay.textContent =
+            "⏰ Tempo esgotado!";
+
+        }
+
+      }, 1000);
+
+    }
+
+    // =========================
+    // VIRAR CARTA
+    // =========================
+
+    function flipCard() {
+
+      if (lockBoard) return;
+
+      if (this.classList.contains("flipped")) return;
+
+      this.classList.add("flipped");
+
+      flippedCards.push(this);
+
+      if (flippedCards.length === 2) {
+
+        checkMatch();
+
+      }
+
+    }
+
+    // =========================
+    // VERIFICAR PAR
+    // =========================
+
+    function checkMatch() {
+
+      const [card1, card2] = flippedCards;
+
+      if (card1.dataset.image === card2.dataset.image) {
+
+        matches++;
+
+        flippedCards = [];
+
+        if (matches === images.length) {
+
+          clearInterval(timer);
+
+          messageDisplay.textContent =
+            "🎉 Parabéns! Você venceu!";
+
+        }
+
+      } else {
+
+        lockBoard = true;
+
+        setTimeout(() => {
+
+          card1.classList.remove("flipped");
+
+          card2.classList.remove("flipped");
+
+          flippedCards = [];
+
+          lockBoard = false;
+
+        }, 800);
+
+      }
+
+    }
+
+    // =========================
+    // REINICIAR
+    // =========================
+
+    document
+      .getElementById("restart")
+      .addEventListener("click", createBoard);
+
+    // =========================
+    // START
+    // =========================
+
+    createBoard();
+
+  </script>
+
+</body>
+</html>
